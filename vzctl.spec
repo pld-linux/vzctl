@@ -1,3 +1,4 @@
+#
 %define _initddir %_sysconfdir/init.d
 %define _vzdir /vz
 %define _lockdir %{_vzdir}/lock
@@ -78,6 +79,28 @@ touch $RPM_BUILD_ROOT/etc/cron.d/vz
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post
+/bin/rm -rf /dev/vzctl
+/bin/mknod -m 600 /dev/vzctl c 126 0
+if [ -f %{_configdir}/vz.conf ]; then
+	if ! grep "IPTABLES=" %{_configdir}/vz.conf >/dev/null 2>&1; then
+		echo 'IPTABLES="ipt_REJECT ipt_tos ipt_limit ipt_multiport iptable_filter iptable_mangle ipt_TCPMSS ipt_tcpmss ipt_ttl ipt_length"' >> %{_configdir}/vz.conf
+	fi
+fi
+/sbin/chkconfig --add vz > /dev/null 2>&1
+
+%preun
+if [ $1 = 0 ]; then
+	/sbin/chkconfig --del vz >/dev/null 2>&1
+fi
+
+%package lib
+Summary:	Virtual Environments control API library
+Group:		Base/Kernel
+
+%description lib
+Virtual Environments control API library
+
 %files
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_initddir}/vz
@@ -142,39 +165,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %attr(777, root, root) %{_sysconfdir}/vz/conf
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/vz
-
-%post
-/bin/rm -rf /dev/vzctl
-/bin/mknod -m 600 /dev/vzctl c 126 0
-if [ -f %{_configdir}/vz.conf ]; then
-	if ! grep "IPTABLES=" %{_configdir}/vz.conf >/dev/null 2>&1; then
-		echo 'IPTABLES="ipt_REJECT ipt_tos ipt_limit ipt_multiport iptable_filter iptable_mangle ipt_TCPMSS ipt_tcpmss ipt_ttl ipt_length"' >> %{_configdir}/vz.conf
-	fi
-fi
-/sbin/chkconfig --add vz > /dev/null 2>&1
-
-if [ -f %{_sysconfdir}/SuSE-release ]; then
-	NET_CFG='ifdown-venet ifup-venet'
-	if ! grep -q -E "^alias venet0" /etc/modprobe.conf; then
-		echo "alias venet0 vznet" >> /etc/modprobe.conf
-	fi
-	ln -f /etc/sysconfig/network-scripts/ifcfg-venet0 /etc/sysconfig/network/ifcfg-venet0
-	for file in ${NET_CFG}; do
-		ln -sf /etc/sysconfig/network-scripts/${file} /etc/sysconfig/network/scripts/${file}
-	done
-fi
-
-%preun
-if [ $1 = 0 ]; then
-	/sbin/chkconfig --del vz >/dev/null 2>&1
-fi
-
-%package lib
-Summary:	Virtual Environments control API library
-Group:		Base/Kernel
-
-%description lib
-Virtual Environments control API library
 
 %files lib
 %defattr(644,root,root,755)
