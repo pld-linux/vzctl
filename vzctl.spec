@@ -1,5 +1,4 @@
-#
-%define _initddir %_sysconfdir/init.d
+%define _initddir /etc/rc.d/init.d
 %define _vzdir /vz
 %define _lockdir %{_vzdir}/lock
 %define _dumpdir %{_vzdir}/dump
@@ -7,19 +6,18 @@
 %define _rootdir %{_vzdir}/root
 %define _cachedir %{_vzdir}/template/cache
 %define _veipdir /var/lib/vzctl/veip
-%define _pkglibdir %_libdir/vzctl
-%define _configdir %_sysconfdir/vz
+%define _pkglibdir %{_libdir}/vzctl
+%define _configdir %{_sysconfdir}/vz
 %define _scriptdir /usr/share/vzctl/scripts
-%define _vpsconfdir %_sysconfdir/sysconfig/vz-scripts
-%define _netdir	%_sysconfdir/sysconfig/network-scripts
-%define _logrdir %_sysconfdir/logrotate.d
-%define _crondir %{_configdir}/cron
+%define _vpsconfdir /etc/sysconfig/vz-scripts
+%define _netdir	/etc/sysconfig/network-scripts
+%define _logrdir /etc/logrotate.d
+%define _crondir /etc/cron.d
 %define _distconfdir %{_configdir}/dists
 %define _namesdir %{_configdir}/names
 %define _distscriptdir %{_distconfdir}/scripts
-%define _udevrulesdir %_sysconfdir/udev/rules.d
-%define _bashcdir %_sysconfdir/bash_completion.d
-
+%define _udevrulesdir /etc/udev/rules.d
+%define _bashcdir /etc/bash_completion.d
 
 Summary:	Virtual Environments control utility
 Name:		vzctl
@@ -29,10 +27,8 @@ License:	GPL
 Group:		Base/Kernel
 Source0:	http://download.openvz.org/utils/vzctl/%{version}/src/%{name}-%{version}.tar.bz2
 # Source0-md5:	d02fdecaeaa1327c08ba5d980383cafa
-ExclusiveOS:	Linux
 URL:		http://openvz.org/
-Requires:	vzkernel
-BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+Requires:	%{name}-lib = %{version}-%{release}
 # these reqs are for vz helper scripts
 Requires:	/sbin/chkconfig
 Requires:	bash
@@ -42,32 +38,44 @@ Requires:	gawk
 Requires:	grep
 Requires:	sed
 Requires:	tar
-Requires:	vzctl-lib = %{version}-%{release}
+Requires:	vzkernel
 Requires:	vzquota >= 2.7.0-4
-
 # requires for vzmigrate purposes
 Requires:	gawk
 Requires:	openssh
 Requires:	rsync
+ExclusiveOS:	Linux
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 This utility allows system administator to control Virtual
 Environments, i.e. create, start, shutdown, set various options and
 limits etc.
 
+%package lib
+Summary:	Virtual Environments control API library
+Group:		Base/Kernel
+
+%description lib
+Virtual Environments control API library.
+
 %prep
 %setup -q
 
 %build
-CFLAGS="%{rpmcflags}" %configure \
+%configure \
 	--enable-bashcomp \
 	--enable-logrotate \
 	--disable-static
+
 %{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-%{__make} DESTDIR=$RPM_BUILD_ROOT vpsconfdir=%{_vpsconfdir} install install-redhat
+%{__make}  install install-redhat \
+	vpsconfdir=%{_vpsconfdir} \
+	DESTDIR=$RPM_BUILD_ROOT
+
 ln -s ../sysconfig/vz-scripts $RPM_BUILD_ROOT%{_configdir}/conf
 ln -s ../vz/vz.conf $RPM_BUILD_ROOT/etc/sysconfig/vz
 # This could go to vzctl-lib-devel, but since we don't have it...
@@ -87,19 +95,12 @@ if [ -f %{_configdir}/vz.conf ]; then
 		echo 'IPTABLES="ipt_REJECT ipt_tos ipt_limit ipt_multiport iptable_filter iptable_mangle ipt_TCPMSS ipt_tcpmss ipt_ttl ipt_length"' >> %{_configdir}/vz.conf
 	fi
 fi
-/sbin/chkconfig --add vz > /dev/null 2>&1
+/sbin/chkconfig --add vz
 
 %preun
 if [ $1 = 0 ]; then
-	/sbin/chkconfig --del vz >/dev/null 2>&1
+	/sbin/chkconfig --del vz
 fi
-
-%package lib
-Summary:	Virtual Environments control API library
-Group:		Base/Kernel
-
-%description lib
-Virtual Environments control API library
 
 %files
 %defattr(644,root,root,755)
