@@ -1,17 +1,9 @@
-%define _vzdir /vz
-%define _lockdir %{_vzdir}/lock
-%define _dumpdir %{_vzdir}/dump
-%define _privdir %{_vzdir}/private
-%define _rootdir %{_vzdir}/root
-%define _cachedir %{_vzdir}/template/cache
-%define _veipdir /var/lib/vzctl/veip
 %define _pkglibdir %{_libdir}/vzctl
 %define _configdir %{_sysconfdir}/vz
 %define _scriptdir /usr/share/vzctl/scripts
 %define _vpsconfdir /etc/sysconfig/vz-scripts
 %define _netdir	/etc/sysconfig/network-scripts
 %define _logrdir /etc/logrotate.d
-%define _crondir /etc/cron.d
 %define _distconfdir %{_configdir}/dists
 %define _namesdir %{_configdir}/names
 %define _distscriptdir %{_distconfdir}/scripts
@@ -80,6 +72,7 @@ rm -rf $RPM_BUILD_ROOT
 
 ln -s ../sysconfig/vz-scripts $RPM_BUILD_ROOT%{_configdir}/conf
 ln -s ../vz/vz.conf $RPM_BUILD_ROOT/etc/sysconfig/vz
+
 # Needed for ghost in files section below
 mkdir $RPM_BUILD_ROOT/etc/cron.d/
 touch $RPM_BUILD_ROOT/etc/cron.d/vz
@@ -105,23 +98,26 @@ if [ $1 = 0 ]; then
 	/sbin/chkconfig --del vz
 fi
 
+%post	lib -p /sbin/ldconfig
+
 %files
 %defattr(644,root,root,755)
 %doc ChangeLog
-%attr(755,root,root) /etc/rc.d/init.d/vz
+%attr(754,root,root) /etc/rc.d/init.d/vz*
 %ghost /etc/cron.d/vz
-%dir %{_lockdir}
-%dir %{_dumpdir}
-%dir %attr(700,root,root) %{_privdir}
-%dir %attr(700,root,root) %{_rootdir}
-%dir %{_cachedir}
-%dir %{_veipdir}
+
+%dir /vz
+/vz/[dlt]*
+%dir %attr(700,root,root) /vz/private
+%dir %attr(700,root,root) /vz/root
+/var/lib/vzctl/veip
+
 %dir %{_configdir}
 %dir %{_namesdir}
 %dir %{_vpsconfdir}
 %dir %{_distconfdir}
 %dir %{_distscriptdir}
-%dir %{_vzdir}
+
 %attr(755,root,root) %{_sbindir}/*send
 %attr(755,root,root) %{_sbindir}/vz*
 %attr(755,root,root) %{_scriptdir}/vps*
@@ -139,7 +135,6 @@ fi
 
 %config(noreplace) %{_configdir}/vz.conf
 %config(noreplace) %{_distconfdir}/*.conf
-%config(noreplace) %{_crondir}/vz
 %config %{_vpsconfdir}/ve-*.conf-sample
 %config %{_vpsconfdir}/0.conf
 
@@ -149,8 +144,4 @@ fi
 %files lib
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libvzctl-*.so
-%dir %{_pkglibdir}
-%dir %{_pkglibdir}/scripts
-%attr(755,root,root) %{_pkglibdir}/scripts/vps-*
-%attr(755,root,root) %{_pkglibdir}/scripts/vzevent-*
-%attr(755,root,root) %{_pkglibdir}/scripts/initd-functions
+%attr(755,root,root) %{_libdir}/vzctl
