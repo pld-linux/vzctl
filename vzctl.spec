@@ -1,4 +1,3 @@
-%define _initddir /etc/rc.d/init.d
 %define _vzdir /vz
 %define _lockdir %{_vzdir}/lock
 %define _dumpdir %{_vzdir}/dump
@@ -27,7 +26,7 @@ Release:	0.1
 License:	GPL
 Group:		Base/Kernel
 Source0:	http://download.openvz.org/utils/vzctl/%{version}/src/%{name}-%{version}.tar.bz2
-# Source0-md5:	d02fdecaeaa1327c08ba5d980383cafa
+# Source0-md5:	5798ea88d06afff1d6d1bbbfc45899f1
 URL:		http://openvz.org/
 Requires:	%{name}-lib = %{version}-%{release}
 # these reqs are for vz helper scripts
@@ -39,12 +38,11 @@ Requires:	gawk
 Requires:	grep
 Requires:	sed
 Requires:	tar
-Requires:	vzkernel
 Requires:	vzquota >= 2.7.0-4
 # requires for vzmigrate purposes
-Requires:	gawk
-Requires:	openssh
-Requires:	rsync
+Suggests:	gawk
+Suggests:	openssh
+Suggests:	rsync
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -82,11 +80,12 @@ rm -rf $RPM_BUILD_ROOT
 
 ln -s ../sysconfig/vz-scripts $RPM_BUILD_ROOT%{_configdir}/conf
 ln -s ../vz/vz.conf $RPM_BUILD_ROOT/etc/sysconfig/vz
-# .so could go to vzctl-lib-devel, but since we don't have it...
-rm -f $RPM_BUILD_ROOT{%_libdir}/libvzctl.{la,so}
 # Needed for ghost in files section below
 mkdir $RPM_BUILD_ROOT/etc/cron.d/
 touch $RPM_BUILD_ROOT/etc/cron.d/vz
+
+# .so could go to vzctl-lib-devel, but since we don't have it...
+rm -f $RPM_BUILD_ROOT%{_libdir}/libvzctl.{la,so}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -108,7 +107,8 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_initddir}/vz
+%doc ChangeLog
+%attr(755,root,root) /etc/rc.d/init.d/vz
 %ghost /etc/cron.d/vz
 %dir %{_lockdir}
 %dir %{_dumpdir}
@@ -117,7 +117,6 @@ fi
 %dir %{_cachedir}
 %dir %{_veipdir}
 %dir %{_configdir}
-%dir %{_crondir}
 %dir %{_namesdir}
 %dir %{_vpsconfdir}
 %dir %{_distconfdir}
@@ -131,8 +130,7 @@ fi
 %{_distconfdir}/default
 %attr(755,root,root) %{_distscriptdir}/*.sh
 %{_distscriptdir}/functions
-%attr(755,root,root) %{_netdir}/ifup-venet
-%attr(755,root,root) %{_netdir}/ifdown-venet
+%attr(755,root,root) %{_netdir}/if*-venet
 %{_netdir}/ifcfg-venet0
 %{_mandir}/man5/*.5*
 %{_mandir}/man8/*.8*
@@ -142,8 +140,7 @@ fi
 %config(noreplace) %{_configdir}/vz.conf
 %config(noreplace) %{_distconfdir}/*.conf
 %config(noreplace) %{_crondir}/vz
-%config %{_vpsconfdir}/ve-vps.basic.conf-sample
-%config %{_vpsconfdir}/ve-light.conf-sample
+%config %{_vpsconfdir}/ve-*.conf-sample
 %config %{_vpsconfdir}/0.conf
 
 %attr(777, root, root) %{_sysconfdir}/vz/conf
