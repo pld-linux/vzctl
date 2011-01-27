@@ -19,9 +19,10 @@
 %define _udevrulesdir /etc/udev/rules.d
 %define _bashcdir /etc/bash_completion.d
 
-Summary:	Virtual Environments control utility
+Summary:	OpenVZ containers control utility
+Summary(pl.UTF-8):	Narzędzie do zarządzania środowiskiem wirtualnym OpenVZ
 Name:		vzctl
-Version:	3.0.22
+Version:	3.0.25.1
 Release:	0.1
 License:	GPL
 Group:		Base/Kernel
@@ -44,20 +45,23 @@ Requires:	vzquota >= 2.7.0-4
 Requires:	gawk
 Requires:	openssh
 Requires:	rsync
-ExclusiveOS:	Linux
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
-This utility allows system administator to control Virtual
-Environments, i.e. create, start, shutdown, set various options and
-limits etc.
+This utility allows system administator to control OpenVZ containers,
+i.e. create, start, shutdown, set various options and limits etc.
+
+%description -l pl.UTF-8
+Narzędzia vztcl pozwalają kontrolować środowisko wirtualne (kontener)
+OpenVZ, jak na przykład: utworzenie, zatrzymanie, wyłączenie kontenera
+oraz umożliwia ustawienie opcji i limitów dotyczących kontenera.
 
 %package lib
-Summary:	Virtual Environments control API library
+Summary:	OpenVZ containers control API library
 Group:		Base/Kernel
 
 %description lib
-Virtual Environments control API library.
+OpenVZ containers control API library.
 
 %prep
 %setup -q
@@ -72,14 +76,14 @@ Virtual Environments control API library.
 
 %install
 rm -rf $RPM_BUILD_ROOT
-%{__make}  install install-redhat \
+%{__make} install install-redhat \
 	vpsconfdir=%{_vpsconfdir} \
 	DESTDIR=$RPM_BUILD_ROOT
 
 ln -s ../sysconfig/vz-scripts $RPM_BUILD_ROOT%{_configdir}/conf
 ln -s ../vz/vz.conf $RPM_BUILD_ROOT/etc/sysconfig/vz
-# This could go to vzctl-lib-devel, but since we don't have it...
-rm -f  $RPM_BUILD_ROOT%_libdir/libvzctl.{la,so}
+# .so could go to vzctl-lib-devel, but since we don't have it...
+rm -f $RPM_BUILD_ROOT{%_libdir}/libvzctl.{la,so}
 # Needed for ghost in files section below
 mkdir $RPM_BUILD_ROOT/etc/cron.d/
 touch $RPM_BUILD_ROOT/etc/cron.d/vz
@@ -119,20 +123,9 @@ fi
 %dir %{_distconfdir}
 %dir %{_distscriptdir}
 %dir %{_vzdir}
-%attr(755,root,root) %{_sbindir}/vzctl
-%attr(755,root,root) %{_sbindir}/arpsend
-%attr(755,root,root) %{_sbindir}/ndsend
-%attr(755,root,root) %{_sbindir}/vzsplit
-%attr(755,root,root) %{_sbindir}/vzlist
-%attr(755,root,root) %{_sbindir}/vzmemcheck
-%attr(755,root,root) %{_sbindir}/vzcpucheck
-%attr(755,root,root) %{_sbindir}/vznetcfg
-%attr(755,root,root) %{_sbindir}/vzcalc
-%attr(755,root,root) %{_sbindir}/vzpid
-%attr(755,root,root) %{_sbindir}/vzcfgvalidate
-%attr(755,root,root) %{_sbindir}/vzmigrate
-%attr(755,root,root) %{_scriptdir}/vpsreboot
-%attr(755,root,root) %{_scriptdir}/vpsnetclean
+%attr(755,root,root) %{_sbindir}/*send
+%attr(755,root,root) %{_sbindir}/vz*
+%attr(755,root,root) %{_scriptdir}/vps*
 %{_logrdir}/vzctl
 %{_distconfdir}/distribution.conf-template
 %{_distconfdir}/default
@@ -141,21 +134,10 @@ fi
 %attr(755,root,root) %{_netdir}/ifup-venet
 %attr(755,root,root) %{_netdir}/ifdown-venet
 %{_netdir}/ifcfg-venet0
-%attr(644, root, root) %{_mandir}/man8/vzctl.8.*
-%attr(644, root, root) %{_mandir}/man8/vzmigrate.8.*
-%attr(644, root, root) %{_mandir}/man8/arpsend.8.*
-%attr(644, root, root) %{_mandir}/man8/vzsplit.8.*
-%attr(644, root, root) %{_mandir}/man8/vzcfgvalidate.8.*
-%attr(644, root, root) %{_mandir}/man8/vzmemcheck.8.*
-%attr(644, root, root) %{_mandir}/man8/vzcalc.8.*
-%attr(644, root, root) %{_mandir}/man8/vzpid.8.*
-%attr(644, root, root) %{_mandir}/man8/vzcpucheck.8.*
-#%attr(644, root, root) %{_mandir}/man8/vzcheckovr.8.*
-%attr(644, root, root) %{_mandir}/man8/vzlist.8.*
-%attr(644, root, root) %{_mandir}/man5/vps.conf.5.*
-%attr(644, root, root) %{_mandir}/man5/vz.conf.5.*
-%attr(644, root, root) %{_udevrulesdir}/*
-%attr(644, root, root) %{_bashcdir}/*
+%{_mandir}/man5/*.5*
+%{_mandir}/man8/*.8*
+%{_udevrulesdir}/*
+%{_bashcdir}/*
 
 %config(noreplace) %{_configdir}/vz.conf
 %config(noreplace) %{_distconfdir}/*.conf
@@ -172,8 +154,6 @@ fi
 %attr(755,root,root) %{_libdir}/libvzctl-*.so
 %dir %{_pkglibdir}
 %dir %{_pkglibdir}/scripts
-%attr(755,root,root) %{_pkglibdir}/scripts/vps-stop
-%attr(755,root,root) %{_pkglibdir}/scripts/vps-functions
-%attr(755,root,root) %{_pkglibdir}/scripts/vps-net_add
-%attr(755,root,root) %{_pkglibdir}/scripts/vps-net_del
-%attr(755,root,root) %{_pkglibdir}/scripts/vps-create
+%attr(755,root,root) %{_pkglibdir}/scripts/vps-*
+%attr(755,root,root) %{_pkglibdir}/scripts/vzevent-*
+%attr(755,root,root) %{_pkglibdir}/scripts/initd-functions
