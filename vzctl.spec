@@ -17,6 +17,7 @@ Patch0:		%{name}-pld.patch
 URL:		http://openvz.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	libtool
 Requires:	%{name}-lib = %{version}-%{release}
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
@@ -63,6 +64,7 @@ install %{SOURCE2} %{SOURCE3} %{SOURCE4} etc/dists/scripts
 install %{SOURCE5} %{SOURCE6} etc/init.d
 
 %build
+%{__libtoolize}
 %{__aclocal}
 %{__automake}
 %configure \
@@ -70,7 +72,7 @@ install %{SOURCE5} %{SOURCE6} etc/init.d
 	--enable-logrotate \
 	--disable-static
 
-%{__make} -j1
+%{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
