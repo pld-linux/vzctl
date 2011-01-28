@@ -98,7 +98,7 @@ rm -rf $RPM_BUILD_ROOT
 /bin/rm -rf /dev/vzctl
 /bin/mknod -m 600 /dev/vzctl c 126 0
 if [ -f %{_configdir}/vz.conf ]; then
-	if ! grep "IPTABLES=" %{_configdir}/vz.conf >/dev/null 2>&1; then
+	if ! grep -q "IPTABLES=" %{_configdir}/vz.conf 2>/dev/null; then
 		echo 'IPTABLES="ipt_REJECT ipt_tos ipt_limit ipt_multiport iptable_filter iptable_mangle ipt_TCPMSS ipt_tcpmss ipt_ttl ipt_length"' >> %{_configdir}/vz.conf
 	fi
 fi
@@ -144,7 +144,7 @@ fi
 %dir /vz
 /vz/[dlt]*
 %attr(700,root,root) %dir /vz/[pr]*
-/var/lib/vzctl/veip
+/var/lib/vzctl
 %{_mandir}/man5/*.5*
 %{_mandir}/man8/*.8*
 
