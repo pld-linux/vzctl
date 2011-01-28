@@ -66,6 +66,7 @@ install %{SOURCE5} %{SOURCE6} etc/init.d
 %build
 %{__libtoolize}
 %{__aclocal}
+%{__autoconf}
 %{__automake}
 %configure \
 	--enable-bashcomp \
