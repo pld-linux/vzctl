@@ -70,7 +70,7 @@ install %{SOURCE5} %{SOURCE6} etc/init.d
 	--enable-logrotate \
 	--disable-static
 
-%{__make}
+%{__make} -j1
 
 %install
 rm -rf $RPM_BUILD_ROOT
