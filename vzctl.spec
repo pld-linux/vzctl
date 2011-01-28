@@ -7,7 +7,16 @@ License:	GPL
 Group:		Base/Kernel
 Source0:	http://download.openvz.org/utils/vzctl/%{version}/src/%{name}-%{version}.tar.bz2
 # Source0-md5:	5798ea88d06afff1d6d1bbbfc45899f1
+Source1:	pld.conf
+Source2:	pld-add_ip.sh
+Source3:	pld-del_ip.sh
+Source4:	pld-set_hostname.sh
+Source5:	vz-pld.in
+Source6:	vzeventd-pld.in
+Patch0:		%{name}-pld.patch
 URL:		http://openvz.org/
+BuildRequires:	autoconf
+BuildRequires:	automake
 Requires:	%{name}-lib = %{version}-%{release}
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
@@ -48,8 +57,14 @@ OpenVZ containers control API library.
 
 %prep
 %setup -q
+%patch0 -p1
+install %{SOURCE1} etc/dists
+install %{SOURCE2} %{SOURCE3} %{SOURCE4} etc/dists/scripts
+install %{SOURCE5} %{SOURCE6} etc/init.d
 
 %build
+%{__aclocal}
+%{__automake}
 %configure \
 	--enable-bashcomp \
 	--enable-logrotate \
@@ -59,10 +74,14 @@ OpenVZ containers control API library.
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/cron.d
+install -d $RPM_BUILD_ROOT/etc/{cron.d,rc.d/init.d,sysconfig/interfaces}
 
-%{__make} install install-redhat \
+%{__make} install install-pld \
+	vpsconfdir=/etc/sysconfig/vz-scripts \
 	DESTDIR=$RPM_BUILD_ROOT
+
+%{__mv} $RPM_BUILD_ROOT/etc/init.d/vz* $RPM_BUILD_ROOT/etc/rc.d/init.d
+%{__mv} $RPM_BUILD_ROOT/etc/sysconfig/{network-scripts,interfaces}/ifcfg-venet0
 
 ln -s ../sysconfig/vz-scripts $RPM_BUILD_ROOT%{_configdir}/conf
 ln -s ../vz/vz.conf $RPM_BUILD_ROOT/etc/sysconfig/vz
@@ -100,10 +119,9 @@ fi
 %doc ChangeLog
 %config(noreplace) /etc/bash_completion.d/%{name}.sh
 %attr(640,root,root) %ghost /etc/cron.d/vz
-#	%attr(754,root,root) /etc/rc.d/init.d/vz*
+%attr(754,root,root) /etc/rc.d/init.d/vz*
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/%{name}
 %attr(755,root,root) /etc/sysconfig/network-scripts/if*-venet
-	%{_netdir}/ifcfg-venet0
 %attr(640,root,root) %config(noreplace,missingok) %verify(not md5 mtime size) /etc/sysconfig/interfaces/ifcfg-venet0
 %dir /etc/sysconfig/vz-scripts
 %config(missingok) /etc/sysconfig/vz-scripts/ve-*.conf-sample
@@ -114,12 +132,13 @@ fi
 %dir %{_distconfdir}
 %config(noreplace) %verify(not md5 mtime size) %{_distconfdir}/default
 %config(noreplace) %{_distconfdir}/distribution.conf-template
-%config(noreplace) %{_distconfdir}/*conf
+%config(noreplace) %{_distconfdir}/*.conf
 %dir %{_distscriptdir}
 %attr(755,root,root) %config(noreplace) %{_distscriptdir}/*.sh
 %config(noreplace) %{_distscriptdir}/functions
 %{_configdir}/names
-%config(noreplace) %verify(not md5 mtime size) %{_configdir}/*.conf
+%config(noreplace) %verify(not md5 mtime size) %{_configdir}/*conf
+%attr(755,root,root) /sbin/ifup-local
 %attr(755,root,root) %{_sbindir}/*send
 %attr(755,root,root) %{_sbindir}/vz*
 %dir /vz

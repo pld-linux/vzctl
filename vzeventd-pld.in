@@ -1,0 +1,106 @@
+#!/bin/bash
+#
+# vzeventd	This shell script takes care of starting and stopping
+#               vzeventd daemon for OpenVZ.
+#
+# chkconfig: 2345 95 89
+# description: vzeventd is OpenVZ events daemon. \
+# It takes care of events sent by the OpenVZ kernel and performs required \
+# actions associated with those events.
+
+### BEGIN INIT INFO
+# Provides: vzeventd
+# Required-start: $remote_fs
+# Required-stop: $remote_fs
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# X-Start-Before: vz
+# X-Stop-After: vz
+# Short-Description: start and stop vzeventd
+# Description: vzeventd is the OpenVZ events daemon.
+#              It takes care of events sent by the OpenVZ kernel
+#              and performs required actions associated with those events.
+### END INIT INFO
+
+. @VZLIBDIR@/initd-functions
+
+prog=vzeventd
+lockfile=$VARLOCK/$prog
+
+load_module() {
+	modprobe vzevent reboot_event=1
+}
+
+check() {
+	local param=/sys/module/vzevent/parameters/reboot_event
+
+	show "Checking vzevent kernel module"
+
+	if ! lsmod | fgrep -qw vzevent; then
+		fail
+		return 1
+	fi
+	if ! cat $param | fgrep -qw 1; then
+		fail
+		print_warning "vzevent module should be loaded with reboot_event=1 parameter"
+		return 1
+	fi
+	ok
+	return 0
+}
+
+start() {
+	[ "$EUID" != "0" ] && exit 4
+	[ -x @SBINDIR@/vzeventd ] || exit 5
+	[ -r /etc/sysconfig/vzeventd ] && . /etc/sysconfig/vzeventd
+	[ -r /etc/default/vzeventd ] && . /etc/default/vzeventd
+
+	[ -f $lockfile ] && exit 0 # Already running
+
+	load_module
+	check || exit 1
+
+	msg_starting "$prog"
+	vzdaemon_start $prog $OPTIONS
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch $lockfile
+	return $RETVAL
+}
+
+stop() {
+	[ "$EUID" != "0" ] && exit 4
+	msg_stopping "$prog"
+	vzdaemon_stop $prog
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && rm -f $lockfile
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+   start)
+	start
+	;;
+   stop)
+	stop
+	;;
+   status)
+	vzdaemon_status $prog
+	;;
+   restart|force-reload)
+	stop
+	start
+	;;
+   try-restart|condrestart)
+	if vzdaemon_status $prog >/dev/null 2>&1; then
+		stop
+		start
+	fi
+	;;
+   reload)
+	exit 3
+	;;
+   *)
+	echo $"Usage: $0 {start|stop|status|restart|try-restart|force-reload}"
+	exit 2
+esac
