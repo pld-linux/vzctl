@@ -1,12 +1,12 @@
 Summary:	OpenVZ containers control utility
 Summary(pl.UTF-8):	Narzędzie do zarządzania środowiskiem wirtualnym OpenVZ
 Name:		vzctl
-Version:	3.0.25.1
+Version:	3.0.25.2
 Release:	1
 License:	GPL
 Group:		Base/Kernel
 Source0:	http://download.openvz.org/utils/vzctl/%{version}/src/%{name}-%{version}.tar.bz2
-# Source0-md5:	5798ea88d06afff1d6d1bbbfc45899f1
+# Source0-md5:	29043723f75bb5627bbaddc14ef4d126
 Source1:	pld.conf
 Source2:	pld-add_ip.sh
 Source3:	pld-del_ip.sh
