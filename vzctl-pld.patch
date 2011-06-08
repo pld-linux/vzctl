@@ -46,6 +46,7 @@ diff -Nru vzctl-3.0.25.1.orig/etc/dists/Makefile.am vzctl-3.0.25.1/etc/dists/Mak
                     debian \
                     fc \
                     fedora \
+                    funtoo \
 +                   pld \
                     gentoo \
                     mandrake \
