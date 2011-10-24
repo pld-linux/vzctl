@@ -71,9 +71,9 @@ Pakiet ten dostarcza bashowe uzupełnianie nazw dla vzctl.
 %prep
 %setup -q
 %patch0 -p1
-install %{SOURCE1} etc/dists
-install %{SOURCE2} %{SOURCE3} %{SOURCE4} etc/dists/scripts
-install %{SOURCE5} %{SOURCE6} etc/init.d
+cp -p %{SOURCE1} etc/dists
+install -p %{SOURCE2} %{SOURCE3} %{SOURCE4} etc/dists/scripts
+install -p %{SOURCE5} %{SOURCE6} etc/init.d
 
 %build
 %{__libtoolize}
@@ -103,8 +103,8 @@ ln -s ../vz/vz.conf $RPM_BUILD_ROOT/etc/sysconfig/vz
 
 :> $RPM_BUILD_ROOT/etc/cron.d/vz
 
-# .so could go to vzctl-lib-devel, but since we don't have it...
-rm -f $RPM_BUILD_ROOT%{_libdir}/libvzctl.{la,so}
+# this could go to vzctl-lib-devel, but since we don't have it...
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/libvzctl.{la,so}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
