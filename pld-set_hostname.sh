@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #  Copyright (C) 2000-2007 SWsoft. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify
