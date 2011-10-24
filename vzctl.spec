@@ -135,6 +135,7 @@ fi
 %attr(640,root,root) %ghost /etc/cron.d/vz
 %attr(754,root,root) /etc/rc.d/init.d/vz*
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/%{name}
+%dir /etc/sysconfig/network-scripts
 %attr(755,root,root) /etc/sysconfig/network-scripts/if*-venet
 %attr(640,root,root) %config(noreplace,missingok) %verify(not md5 mtime size) /etc/sysconfig/interfaces/ifcfg-venet0
 %dir /etc/sysconfig/vz-scripts
