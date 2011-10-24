@@ -56,6 +56,18 @@ Group:		Libraries
 %description lib
 OpenVZ containers control API library.
 
+%package -n bash-completion-%{name}
+Summary:	bash-completion for vzctl
+Summary(pl.UTF-8):	bashowe uzupełnianie nazw dla vzctl
+Group:		Applications/Shells
+Requires:	bash-completion
+
+%description -n bash-completion-%{name}
+This package provides bash-completion for vzctl.
+
+%description -n bash-completion-%{name} -l pl.UTF-8
+Pakiet ten dostarcza bashowe uzupełnianie nazw dla vzctl.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -110,7 +122,7 @@ fi
 %service vzeventd restart "vzeventd service"
 
 %preun
-if [ $1 = 0 ]; then
+if [ "$1" = 0 ]; then
 	/sbin/chkconfig --del vz
 	/sbin/chkconfig --del vzeventd
 fi
@@ -120,7 +132,6 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc ChangeLog
-%config(noreplace) /etc/bash_completion.d/%{name}.sh
 %attr(640,root,root) %ghost /etc/cron.d/vz
 %attr(754,root,root) /etc/rc.d/init.d/vz*
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/%{name}
@@ -155,3 +166,7 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libvzctl-*.so
 %attr(755,root,root) %{_libdir}/vzctl
+
+%files -n bash-completion-%{name}
+%defattr(644,root,root,755)
+/etc/bash_completion.d/%{name}.sh
