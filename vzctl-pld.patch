@@ -58,9 +58,9 @@ diff -Nru vzctl-3.0.25.1.orig/etc/init.d/initd-functions.in vzctl-3.0.25.1/etc/i
  
  # Source function library.
  if [ -r /etc/init.d/functions ]; then
--	source /etc/init.d/functions
+-	. /etc/init.d/functions
  	if [ -r /etc/redhat-release ] || [ -r /etc/centos-release ]; then
-+		source /etc/init.d/functions
++		. /etc/init.d/functions
  		DISTR=redhat
 +	elif [ -r /etc/pld-release ]; then
 +		. /etc/init.d/functions

@@ -1,12 +1,12 @@
 Summary:	OpenVZ containers control utility
 Summary(pl.UTF-8):	Narzędzie do zarządzania środowiskiem wirtualnym OpenVZ
 Name:		vzctl
-Version:	3.0.29.3
-Release:	2
+Version:	3.2
+Release:	1
 License:	GPL
 Group:		Base/Kernel
 Source0:	http://download.openvz.org/utils/vzctl/%{version}/src/%{name}-%{version}.tar.bz2
-# Source0-md5:	e265b60c589a3d3b665608598b43e930
+# Source0-md5:	83f56ee56b79f32173d1bffaaa4075ab
 Source1:	pld.conf
 Source2:	pld-add_ip.sh
 Source3:	pld-del_ip.sh
@@ -18,6 +18,8 @@ URL:		http://openvz.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	libtool
+BuildRequires: 	ploop-devel > 1.1-1
+Requires: 	ploop-lib > 1.1-1
 Requires:	%{name}-lib = %{version}-%{release}
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
