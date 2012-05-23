@@ -3,8 +3,8 @@ Summary(pl.UTF-8):	Narzędzie do zarządzania środowiskiem wirtualnym OpenVZ
 Name:		vzctl
 Version:	3.2
 Release:	1
-License:	GPL
-Group:		Base/Kernel
+License:	GPL v2+
+Group:		Applications/System
 Source0:	http://download.openvz.org/utils/vzctl/%{version}/src/%{name}-%{version}.tar.bz2
 # Source0-md5:	83f56ee56b79f32173d1bffaaa4075ab
 Source1:	pld.conf
@@ -15,11 +15,12 @@ Source5:	vz-pld.in
 Source6:	vzeventd-pld.in
 Patch0:		%{name}-pld.patch
 URL:		http://openvz.org/
-BuildRequires:	autoconf
-BuildRequires:	automake
+BuildRequires:	autoconf >= 2.59
+BuildRequires:	automake >= 1:1.9
 BuildRequires:	libtool
+BuildRequires:	libxml2-devel >= 1:2.6.16
 BuildRequires: 	ploop-devel > 1.1-1
-Requires: 	ploop-lib > 1.1-1
+Requires: 	ploop-libs > 1.1-1
 Requires:	%{name}-lib = %{version}-%{release}
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
@@ -47,20 +48,24 @@ This utility allows system administator to control OpenVZ containers,
 i.e. create, start, shutdown, set various options and limits etc.
 
 %description -l pl.UTF-8
-Narzędzia vztcl pozwalają kontrolować środowisko wirtualne (kontener)
-OpenVZ, jak na przykład: utworzenie, zatrzymanie, wyłączenie kontenera
-oraz umożliwia ustawienie opcji i limitów dotyczących kontenera.
+Narzędzia vztcl pozwalają administratorowi zarządzać środowiskami
+wirtualnymi (kontenerami) OpenVZ, tzn. tworzyć je, uruchamiać,
+zatrzymywać, ustawiać różne opcje i limity itp.
 
 %package lib
 Summary:	OpenVZ containers control API library
+Summary(pl.UTF-8):	Biblioteka do zarządzania kontenerami OpenVZ
 Group:		Libraries
 
 %description lib
 OpenVZ containers control API library.
 
+%description lib -l pl.UTF-8
+Biblioteka do zarządzania kontenerami OpenVZ
+
 %package -n bash-completion-%{name}
 Summary:	bash-completion for vzctl
-Summary(pl.UTF-8):	bashowe uzupełnianie nazw dla vzctl
+Summary(pl.UTF-8):	bashowe uzupełnianie linii poleceń dla vzctl
 Group:		Applications/Shells
 Requires:	bash-completion
 
@@ -68,7 +73,7 @@ Requires:	bash-completion
 This package provides bash-completion for vzctl.
 
 %description -n bash-completion-%{name} -l pl.UTF-8
-Pakiet ten dostarcza bashowe uzupełnianie nazw dla vzctl.
+Pakiet ten dostarcza bashowe uzupełnianie linii poleceń dla vzctl.
 
 %prep
 %setup -q
@@ -83,9 +88,9 @@ install -p %{SOURCE5} %{SOURCE6} etc/init.d
 %{__autoconf}
 %{__automake}
 %configure \
+	--disable-silent-rules \
 	--enable-bashcomp \
-	--enable-logrotate \
-	--disable-static
+	--enable-logrotate
 
 %{__make}
 
@@ -135,7 +140,8 @@ fi
 %defattr(644,root,root,755)
 %doc ChangeLog
 %attr(640,root,root) %ghost /etc/cron.d/vz
-%attr(754,root,root) /etc/rc.d/init.d/vz*
+%attr(754,root,root) /etc/rc.d/init.d/vz
+%attr(754,root,root) /etc/rc.d/init.d/vzeventd
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/%{name}
 %dir /etc/sysconfig/network-scripts
 %attr(755,root,root) /etc/sysconfig/network-scripts/if*-venet
@@ -156,14 +162,21 @@ fi
 %{_configdir}/names
 %config(noreplace) %verify(not md5 mtime size) %{_configdir}/*conf
 %attr(755,root,root) /sbin/ifup-local
-%attr(755,root,root) %{_sbindir}/*send
+%attr(755,root,root) %{_sbindir}/arpsend
+%attr(755,root,root) %{_sbindir}/ndsend
 %attr(755,root,root) %{_sbindir}/vz*
 %dir /vz
-/vz/[dlt]*
-%attr(700,root,root) %dir /vz/[pr]*
+/vz/dump
+/vz/lock
+/vz/template
+%attr(700,root,root) %dir /vz/private
+%attr(700,root,root) %dir /vz/root
 /var/lib/vzctl
-%{_mandir}/man5/*.5*
-%{_mandir}/man8/*.8*
+%{_mandir}/man5/ctid.conf.5*
+%{_mandir}/man5/vz.conf.5*
+%{_mandir}/man8/arpsend.8*
+%{_mandir}/man8/ndsend.8*
+%{_mandir}/man8/vz*.8*
 
 %files lib
 %defattr(644,root,root,755)
