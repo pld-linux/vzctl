@@ -56,6 +56,7 @@ zatrzymywać, ustawiać różne opcje i limity itp.
 Summary:	OpenVZ containers control API library
 Summary(pl.UTF-8):	Biblioteka do zarządzania kontenerami OpenVZ
 Group:		Libraries
+Requires:	libxml2 >= 1:2.6.1.6
 
 %description lib
 OpenVZ containers control API library.
