@@ -1,7 +1,7 @@
-diff -Nru vzctl-3.0.25.1.orig/bin/Makefile.am vzctl-3.0.25.1/bin/Makefile.am
---- vzctl-3.0.25.1.orig/bin/Makefile.am	2010-12-24 12:45:38.000000000 +0100
-+++ vzctl-3.0.25.1/bin/Makefile.am	2011-01-03 10:44:51.000000000 +0100
-@@ -48,6 +48,27 @@
+diff -ru vzctl-4.0/bin/Makefile.am vzctl-4.0-patched/bin/Makefile.am
+--- vzctl-4.0/bin/Makefile.am	2012-09-25 16:53:24.000000000 +0200
++++ vzctl-4.0-patched/bin/Makefile.am	2012-10-27 17:30:19.150478764 +0200
+@@ -49,6 +49,27 @@
  		echo " ***************************************************"; \
  		echo; \
  	fi
@@ -29,31 +29,32 @@ diff -Nru vzctl-3.0.25.1.orig/bin/Makefile.am vzctl-3.0.25.1/bin/Makefile.am
  
  
  install-suse:
-diff -Nru vzctl-3.0.25.1.orig/etc/dists/Makefile.am vzctl-3.0.25.1/etc/dists/Makefile.am
---- vzctl-3.0.25.1.orig/etc/dists/Makefile.am	2010-12-24 12:45:35.000000000 +0100
-+++ vzctl-3.0.25.1/etc/dists/Makefile.am	2011-01-03 10:44:51.000000000 +0100
-@@ -89,6 +89,9 @@
- 	$(INSTALL_DATA) $(srcdir)/fedora-core.conf \
- 		$(DESTDIR)$(distconfdir)/fedora.conf
+Tylko w vzctl-4.0-patched/bin: Makefile.am.orig
+diff -ru vzctl-4.0/etc/dists/Makefile.am vzctl-4.0-patched/etc/dists/Makefile.am
+--- vzctl-4.0/etc/dists/Makefile.am	2012-09-25 16:53:23.000000000 +0200
++++ vzctl-4.0-patched/etc/dists/Makefile.am	2012-10-27 17:30:19.150478764 +0200
+@@ -75,6 +75,9 @@
+ funtoo:
+ 	$(INSTALL_DATA) $(srcdir)/funtoo.conf $(DESTDIR)$(distconfdir)/funtoo.conf
  
 +pld:
 +	$(INSTALL_DATA) $(srcdir)/pld.conf $(DESTDIR)$(distconfdir)/pld.conf
 +
  gentoo:
- 	$(INSTALL_DATA) $(srcdir)/gentoo.conf $(DESTDIR)$(distconfdir)/gentoo.conf
- 
-@@ -169,6 +172,7 @@
+ 	$(INSTALL_DATA) $(srcdir)/gentoo.conf \
+ 		$(DESTDIR)$(distconfdir)/gentoo.conf
+@@ -142,6 +145,7 @@
                     debian \
-                    fc \
                     fedora \
                     funtoo \
 +                   pld \
                     gentoo \
                     mandrake \
                     owl \
-diff -Nru vzctl-3.0.25.1.orig/etc/init.d/initd-functions.in vzctl-3.0.25.1/etc/init.d/initd-functions.in
---- vzctl-3.0.25.1.orig/etc/init.d/initd-functions.in	2010-12-24 12:45:35.000000000 +0100
-+++ vzctl-3.0.25.1/etc/init.d/initd-functions.in	2011-01-05 16:17:46.000000000 +0100
+Tylko w vzctl-4.0-patched/etc/dists: Makefile.am.orig
+diff -ru vzctl-4.0/etc/init.d/initd-functions.in vzctl-4.0-patched/etc/init.d/initd-functions.in
+--- vzctl-4.0/etc/init.d/initd-functions.in	2012-09-25 16:53:23.000000000 +0200
++++ vzctl-4.0-patched/etc/init.d/initd-functions.in	2012-10-27 17:30:19.151478423 +0200
 @@ -16,9 +16,12 @@
  
  # Source function library.
@@ -67,7 +68,7 @@ diff -Nru vzctl-3.0.25.1.orig/etc/init.d/initd-functions.in vzctl-3.0.25.1/etc/i
 +		DISTR=pld
  	fi
  elif [ -r /etc/rc.status ]; then
- 	source /etc/rc.status
+ 	. /etc/rc.status
 @@ -34,6 +37,8 @@
  {
  	if [ "$DISTR" = "redhat" ]; then
@@ -125,7 +126,7 @@ diff -Nru vzctl-3.0.25.1.orig/etc/init.d/initd-functions.in vzctl-3.0.25.1/etc/i
  		echo -n $"$1"
  	else
  		echo -n "$1"
-@@ -85,7 +101,7 @@
+@@ -93,7 +109,7 @@
  vzdaemon_start()
  {
  	case $DISTR in
@@ -134,7 +135,7 @@ diff -Nru vzctl-3.0.25.1.orig/etc/init.d/initd-functions.in vzctl-3.0.25.1/etc/i
  		daemon $*
  		;;
  	   suse)
-@@ -102,7 +118,7 @@
+@@ -110,7 +126,7 @@
  vzdaemon_stop()
  {
  	case $DISTR in
@@ -143,7 +144,7 @@ diff -Nru vzctl-3.0.25.1.orig/etc/init.d/initd-functions.in vzctl-3.0.25.1/etc/i
  		killproc $*
  		;;
  	   debian)
-@@ -119,7 +135,7 @@
+@@ -127,7 +143,7 @@
  	shift
  
  	case $DISTR in
@@ -152,18 +153,19 @@ diff -Nru vzctl-3.0.25.1.orig/etc/init.d/initd-functions.in vzctl-3.0.25.1/etc/i
  		status $p
  		;;
  	   debian)
-diff -Nru vzctl-3.0.25.1.orig/etc/init.d/Makefile.am vzctl-3.0.25.1/etc/init.d/Makefile.am
---- vzctl-3.0.25.1.orig/etc/init.d/Makefile.am	2010-12-24 12:45:34.000000000 +0100
-+++ vzctl-3.0.25.1/etc/init.d/Makefile.am	2011-01-03 10:46:14.000000000 +0100
+Tylko w vzctl-4.0-patched/etc/init.d: initd-functions.in.orig
+diff -ru vzctl-4.0/etc/init.d/Makefile.am vzctl-4.0-patched/etc/init.d/Makefile.am
+--- vzctl-4.0/etc/init.d/Makefile.am	2012-09-25 16:53:23.000000000 +0200
++++ vzctl-4.0-patched/etc/init.d/Makefile.am	2012-10-27 17:32:07.083190799 +0200
 @@ -15,7 +15,7 @@
  #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  #
  
 -INITSCRIPTS = vz-redhat vz-gentoo vzeventd-redhat vzeventd-gentoo
-+INITSCRIPTS = vz-redhat vz-gentoo vz-pld vzeventd-pld vzeventd-redhat vzeventd-gentoo
- vzlib_DATA = initd-functions
++INITSCRIPTS = vz-redhat vz-gentoo vzeventd-redhat vzeventd-gentoo vz-pld vzeventd-pld
+ script_DATA = initd-functions
  
- EXTRA_DIST = $(INITSCRIPTS:%=%.in) $(vzlib_DATA:%=%.in)
+ EXTRA_DIST = $(INITSCRIPTS:%=%.in) $(script_DATA:%=%.in)
 @@ -29,6 +29,12 @@
  	$(INSTALL_SCRIPT) vz-redhat $(DESTDIR)$(initddir)/vz
  	$(INSTALL_SCRIPT) vzeventd-redhat $(DESTDIR)$(initddir)/vzeventd
@@ -177,9 +179,9 @@ diff -Nru vzctl-3.0.25.1.orig/etc/init.d/Makefile.am vzctl-3.0.25.1/etc/init.d/M
  install-suse: install-redhat
  
  install-debian: install-redhat
-diff -Nru vzctl-3.0.25.1.orig/etc/Makefile.am vzctl-3.0.25.1/etc/Makefile.am
---- vzctl-3.0.25.1.orig/etc/Makefile.am	2010-12-24 12:45:34.000000000 +0100
-+++ vzctl-3.0.25.1/etc/Makefile.am	2011-01-03 10:44:51.000000000 +0100
+diff -ru vzctl-4.0/etc/Makefile.am vzctl-4.0-patched/etc/Makefile.am
+--- vzctl-4.0/etc/Makefile.am	2012-09-25 16:53:23.000000000 +0200
++++ vzctl-4.0-patched/etc/Makefile.am	2012-10-27 17:30:19.151478423 +0200
 @@ -34,6 +34,11 @@
  install-data-local:
  	$(mkinstalldirs) $(DESTDIR)$(namesdir)
@@ -192,9 +194,9 @@ diff -Nru vzctl-3.0.25.1.orig/etc/Makefile.am vzctl-3.0.25.1/etc/Makefile.am
  install-redhat-from-spec: install-redhat
  install-redhat:
  	$(MAKE) $(AM_MAKEFLAGS) -C init.d $@
-diff -Nru vzctl-3.0.25.1.orig/etc/network-scripts/Makefile.am vzctl-3.0.25.1/etc/network-scripts/Makefile.am
---- vzctl-3.0.25.1.orig/etc/network-scripts/Makefile.am	2010-12-24 12:45:35.000000000 +0100
-+++ vzctl-3.0.25.1/etc/network-scripts/Makefile.am	2011-01-03 10:44:51.000000000 +0100
+diff -ru vzctl-4.0/etc/network-scripts/Makefile.am vzctl-4.0-patched/etc/network-scripts/Makefile.am
+--- vzctl-4.0/etc/network-scripts/Makefile.am	2012-09-25 16:53:23.000000000 +0200
++++ vzctl-4.0-patched/etc/network-scripts/Makefile.am	2012-10-27 17:30:19.152478519 +0200
 @@ -38,3 +38,11 @@
  	for file in $(NETSDATA); do \
  		$(INSTALL_DATA) $(srcdir)/$$file $(DESTDIR)$(netsdir)/$$file; \
@@ -207,10 +209,10 @@ diff -Nru vzctl-3.0.25.1.orig/etc/network-scripts/Makefile.am vzctl-3.0.25.1/etc
 +	for file in $(NETSDATA); do \
 +		$(INSTALL_DATA) $(srcdir)/$$file $(DESTDIR)$(netsdir)/$$file; \
 +	done
-diff -Nru vzctl-3.0.25.1.orig/Makefile.am vzctl-3.0.25.1/Makefile.am
---- vzctl-3.0.25.1.orig/Makefile.am	2010-12-24 12:45:32.000000000 +0100
-+++ vzctl-3.0.25.1/Makefile.am	2011-01-03 10:44:51.000000000 +0100
-@@ -46,6 +46,7 @@
+diff -ru vzctl-4.0/Makefile.am vzctl-4.0-patched/Makefile.am
+--- vzctl-4.0/Makefile.am	2012-09-25 16:53:23.000000000 +0200
++++ vzctl-4.0-patched/Makefile.am	2012-10-27 17:30:19.152478519 +0200
+@@ -47,6 +47,7 @@
  	$(mkinstalldirs) $(DESTDIR)$(modulesdir)
  
  DISTRO_TARGETS = \
@@ -218,7 +220,7 @@ diff -Nru vzctl-3.0.25.1.orig/Makefile.am vzctl-3.0.25.1/Makefile.am
  	install-redhat \
  	install-gentoo \
  	install-suse \
-@@ -53,7 +54,8 @@
+@@ -54,7 +55,8 @@
  
  DISTRO_TARGETS_ALL = \
  	$(DISTRO_TARGETS) \
