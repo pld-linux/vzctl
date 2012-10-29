@@ -17,8 +17,10 @@ Patch0:		%{name}-pld.patch
 URL:		http://openvz.org/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.9
+BuildRequires:	libcgroup-devel >= 0.37
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 1:2.6.16
+BuildRequires:	pkgconfig
 BuildRequires: 	ploop-devel > 1.4
 Requires: 	ploop-libs > 1.4
 Requires:	%{name}-lib = %{version}-%{release}
@@ -56,6 +58,7 @@ zatrzymywać, ustawiać różne opcje i limity itp.
 Summary:	OpenVZ containers control API library
 Summary(pl.UTF-8):	Biblioteka do zarządzania kontenerami OpenVZ
 Group:		Libraries
+Requires:	libcgroup >= 0.37
 Requires:	libxml2 >= 1:2.6.1.6
 
 %description lib
