@@ -1,5 +1,5 @@
 #!/bin/bash
-#  Copyright (C) 2000-2007 SWsoft. All rights reserved.
+#  Copyright (C) 2000-2008, Parallels, Inc. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,225 +16,88 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# This script configure IP alias(es) inside RedHat like VE.
-#
-# Parameters are passed in environment variables.
-# Required parameters:
-#   IP_ADDR       - IP address(es) to add
-#                   (several addresses should be divided by space)
-# Optional parameters:
-#   VE_STATE      - state of VE; could be one of:
-#                     starting | stopping | running | stopped
-#   IPDELALL	  - delete all old interfaces
-#
+# Adds IP address(es) in a container running SuSE.
+set -x
 
 VENET_DEV=venet0
-VENET_DEV_CFG=ifcfg-$VENET_DEV
-
-
-IFCFG_DIR=/etc/sysconfig/interfaces
+IFCFG_DIR=/etc/sysconfig/interfaces/
 IFCFG=${IFCFG_DIR}/ifcfg-${VENET_DEV}
-NETFILE=/etc/sysconfig/network
+#ROUTES=${IFCFG_DIR}/ifroute-${VENET_DEV}
 HOSTFILE=/etc/hosts
-ROUTE=/etc/sysconfig/network
-NETWORKRESTART=
 
-function fix_ifup
+function get_aliases()
 {
-	file="/sbin/ifup"
+	IFNUMLIST=
 
-	[ -f "${file}" ] || return 0
-	[ "x${VE_STATE}" != "xstarting" ] && return 0
-
-	if grep -q 'if \[ "\${DEVICE}" = "lo" \]; then' ${file} 2>/dev/null
-	then
-		${CP} ${file} ${file}.$$ || return 1
-		/bin/sed -e 's/if \[ "\${DEVICE}" = "lo" \]; then/if \[ "${IPADDR}" = "127.0.0.1" \]; then/g' < ${file} > ${file}.$$ &&
-			mv -f ${file}.$$ ${file}
-		rm -f ${file}.$$ 2>/dev/null
-	fi
+	[ -f ${IFCFG} ] || return
+	IFNUMLIST=`grep -e "^IPADDR" ${IFCFG} | sed 's/^IPADDR\(.*\)=.*/\1/'`
 }
 
-function setup_network
+function init_config()
 {
-	# Set up venet0 main interface as 127.0.0.1
+
 	mkdir -p ${IFCFG_DIR}
-	echo "DEVICE=${VENET_DEV}
-BOOTPROTO=static
+	echo "DEVICE=venet0
 ONBOOT=yes
-IPADDR=127.0.0.1
+BOOTPROTO=static
+BROADCAST=0.0.0.0
 NETMASK=255.255.255.255
-BROADCAST=0.0.0.0" > $IFCFG || error "Can't write to file $IFCFG" $VZ_FS_NO_DISK_SPACE
-
-
-	remove_fake_old_route ${ROUTE}
-#	if ! grep -q "${FAKEGATEWAYNET}/24 dev ${VENET_DEV}" ${ROUTE} 2>/dev/null; then
-#		echo "${FAKEGATEWAYNET}/24 dev ${VENET_DEV} scope host
-#default via ${FAKEGATEWAY}" >> ${ROUTE} || error "Can't create ${ROUTE}" ${VZ_FS_NO_DISK_SPACE}
-#	fi
-	# Set /etc/sysconfig/network
-	put_param $NETFILE NETWORKING yes
-	put_param $NETFILE GATEWAY ${FAKEGATEWAY}
-
-	# setup ipv6
-	setup6_network
+IPADDR=127.0.0.1" > ${IFCFG} ||
+	error "Can't write to file ${IFCFG}" ${VZ_FS_NO_DISK_SPACE}
 
 	# Set up /etc/hosts
 	if [ ! -f ${HOSTFILE} ]; then
 		echo "127.0.0.1 localhost.localdomain localhost" > $HOSTFILE
 	fi
-	fix_ifup
-}
-
-function setup6_network
-{
-	[ "${IPV6}" != "yes" ] && return 0
-
-	if ! grep -q 'IPV6INIT="yes"' ${IFCFG}; then
-		put_param ${IFCFG} IPV6INIT yes
-	fi
-	if ! grep -q 'NETWORKING_IPV6="yes"' ${NETFILE}; then
-		put_param ${NETFILE} NETWORKING_IPV6 yes
-		put_param ${NETFILE} IPV6_DEFAULTDEV ${VENET_DEV}
-		NETWORKRESTART=yes
-	fi
-}
-
-function create_config
+function create_config()
 {
 	local ip=$1
 	local ifnum=$2
 
-	echo "DEVICE=${VENET_DEV}:${ifnum}
-BOOTPROTO=static
-ONBOOT=yes
-IPADDR=${ip}
-NETMASK=255.255.255.255" > ${IFCFG_DIR}/bak/${VENET_DEV_CFG}:${ifnum} ||
-	error "Unable to create interface config file" ${VZ_FS_NO_DISK_SPACE}
+#LABEL_${ifnum}=${ifnum}" >> ${IFCFG} ||
+	echo "IPADDR${ifnum}=${ip}" >> ${IFCFG} || error "Can't write to file ${IFCFG}" ${VZ_FS_NO_DISK_SPACE}
 }
 
-function add_ip6
+function add_ip()
 {
-	[ "${IPV6}" != "yes" ] && return
-	if ! grep -qw "$1" ${IFCFG} 2>/dev/null; then
-		setup6_network
-		add_param ${IFCFG} IPV6ADDR_SECONDARIES "$1/128"
-		ifconfig ${VENET_DEV} add "$1/128"
-	fi
-}
+	local ipm
+	local ifnum=0
+	local found
 
-function get_all_aliasid
-{
-	IFNUM=-1
-
-	cd ${IFCFG_DIR} || return 1
-	IFNUMLIST=`ls -1 bak/${VENET_DEV_CFG}:* 2>/dev/null |
-		sed "s/.*${VENET_DEV_CFG}://"`
-}
-
-function get_aliasid_by_ip
-{
-	local ip=$1
-	local idlist
-
-	cd ${IFCFG_DIR} || return 1
-	IFNUM=`grep -l "IPADDR=${ip}$" ${VENET_DEV_CFG}:* | head -n 1 |
-		sed -e 's/.*:\([0-9]*\)$/\1/'`
-}
-
-function get_free_aliasid
-{
-	local found=
-
-	[ -z "${IFNUMLIST}" ] && get_all_aliasid
-	while test -z ${found}; do
-		let IFNUM=IFNUM+1
-		echo "${IFNUMLIST}" | grep -q -E "^${IFNUM}$" 2>/dev/null ||
-			found=1
-	done
-}
-
-function backup_configs
-{
-	local delall=$1
-
-	rm -rf ${IFCFG_DIR}/bak/ >/dev/null 2>&1
-	mkdir -p ${IFCFG_DIR}/bak
-	[ -n "${delall}" ] && return 0
-
-	cd ${IFCFG_DIR} || return 1
-	if ls ${VENET_DEV_CFG}:* > /dev/null 2>&1; then
-		${CP} ${VENET_DEV_CFG}:* ${IFCFG_DIR}/bak/ ||
-			error "Unable to backup intrface config files" ${VZ_FS_NO_DISK_SPACE}
-	fi
-}
-
-function move_configs
-{
-	cd ${IFCFG_DIR} || return 1
-	rm -rf ${VENET_DEV_CFG}:*
-	mv -f bak/* ${IFCFG_DIR}/ >/dev/null 2>&1
-	rm -rf ${IFCFG_DIR}/bak
-}
-
-function add_ip
-{
-	local ip
-	local new_ips
-	local if_restart=
-
-	# In case we are starting VE
 	if [ "x${VE_STATE}" = "xstarting" ]; then
-		# Remove all VENET config files
-		rm -f ${IFCFG} ${IFCFG}:* >/dev/null 2>&1
+		if [ -n "${IP_ADDR}" ]; then
+			init_config
+		elif grep -q "^IPADDR" ${IFCFG}; then
+			init_config
+		fi
+	elif [ "x${IPDELALL}" = "xyes" ]; then
+		init_config
+	elif [ ! -f "${IFCFG}" ]; then
+		init_config
 	fi
-	if [ ! -f "${IFCFG}" ]; then
-		setup_network
-		if_restart=1
-	fi
-	backup_configs ${IPDELALL}
-	new_ips="${IP_ADDR}"
-	if [ "x${IPDELALL}" = "xyes" ]; then
-		new_ips=
-		for ip in ${IP_ADDR}; do
-			get_aliasid_by_ip "${ip}"
-			if [ -n "${IFNUM}" ]; then
-				# ip already exists just create it in bak
-				create_config "${ip}" "${IFNUM}"
-			else
-				new_ips="${new_ips} ${ip}"
+
+	get_aliases
+	for ipm in ${IP_ADDR}; do
+		ip_conv $ipm
+		found=
+		if grep -q -w "${_IP}" ${IFCFG}; then
+			continue
+		fi
+		while test -z ${found}; do
+			let ifnum++
+			if ! echo "${IFNUMLIST}" | grep -w -q "${ifnum}"; then
+				found=1
 			fi
 		done
-	fi
-	for ip in ${new_ips}; do
-		if [ "${ip#*:}" = "${ip}" ]; then
-			get_free_aliasid
-			create_config "${ip}" "${IFNUM}"
-		else
-			if [ "x${IPDELALL}" = "xyes" ]; then
-				del_param ${IFCFG} IPV6ADDR_SECONDARIES ""
-			fi
-			add_ip6 "${ip}"
-		fi
+		create_config ${_IP} ${ifnum}
 	done
-	move_configs
 	if [ "x${VE_STATE}" = "xrunning" ]; then
-		# synchronyze config files & interfaces
-		if [ "${NETWORKRESTART}" = "yes" ]; then
-			/etc/init.d/network restart
-		echo "Tutaj 2"
-		elif [ -n "${if_restart}" ]; then
-			ifup ${VENET_DEV}:${IFNUM}
-			echo "Tutaj 3: ${VENET_DEV}:${IFNUM}";
-		else
-			cd /etc/sysconfig/network-scripts &&
-				./ifup-aliases ${VENET_DEV}
-				ifup ${VENET_DEV}:${IFNUM}
-			echo "Tutaj 4: ${VENET_DEV}:${IFNUM}";
-		fi
+		ifdown $VENET_DEV  >/dev/null 2>&1
+		ifup $VENET_DEV  >/dev/null 2>&1
 	fi
 }
 
 add_ip
+
 exit 0
 # end of script

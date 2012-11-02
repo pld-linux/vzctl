@@ -29,7 +29,6 @@ diff -ru vzctl-4.0/bin/Makefile.am vzctl-4.0-patched/bin/Makefile.am
  
  
  install-suse:
-Tylko w vzctl-4.0-patched/bin: Makefile.am.orig
 diff -ru vzctl-4.0/etc/dists/Makefile.am vzctl-4.0-patched/etc/dists/Makefile.am
 --- vzctl-4.0/etc/dists/Makefile.am	2012-09-25 16:53:23.000000000 +0200
 +++ vzctl-4.0-patched/etc/dists/Makefile.am	2012-10-27 17:30:19.150478764 +0200
@@ -51,7 +50,6 @@ diff -ru vzctl-4.0/etc/dists/Makefile.am vzctl-4.0-patched/etc/dists/Makefile.am
                     gentoo \
                     mandrake \
                     owl \
-Tylko w vzctl-4.0-patched/etc/dists: Makefile.am.orig
 diff -ru vzctl-4.0/etc/init.d/initd-functions.in vzctl-4.0-patched/etc/init.d/initd-functions.in
 --- vzctl-4.0/etc/init.d/initd-functions.in	2012-09-25 16:53:23.000000000 +0200
 +++ vzctl-4.0-patched/etc/init.d/initd-functions.in	2012-10-27 17:30:19.151478423 +0200
@@ -153,7 +151,6 @@ diff -ru vzctl-4.0/etc/init.d/initd-functions.in vzctl-4.0-patched/etc/init.d/in
  		status $p
  		;;
  	   debian)
-Tylko w vzctl-4.0-patched/etc/init.d: initd-functions.in.orig
 diff -ru vzctl-4.0/etc/init.d/Makefile.am vzctl-4.0-patched/etc/init.d/Makefile.am
 --- vzctl-4.0/etc/init.d/Makefile.am	2012-09-25 16:53:23.000000000 +0200
 +++ vzctl-4.0-patched/etc/init.d/Makefile.am	2012-10-27 17:32:07.083190799 +0200

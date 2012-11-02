@@ -1,5 +1,5 @@
 #!/bin/bash
-#  Copyright (C) 2000-2007 SWsoft. All rights reserved.
+#  Copyright (C) 2000-2008, Parallels, Inc. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,54 +16,34 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# This script deletes IP alias(es) inside VE for RedHat like systems.
-#
-# Parameters are passed in environment variables.
-# Required parameters:
-#   IP_ADDR       - IPs to delete, several addresses should be divided by space
-# Optional parameters:
-#   IPDELALL      - delete all ip addresses
+# Deletes IP address(es) from a container running SuSE.
+
 VENET_DEV=venet0
-VENET_DEV_CFG=ifcfg-${VENET_DEV}
 IFCFG_DIR=/etc/sysconfig/interfaces/
-IFCFG=${IFCFG_DIR}${VENET_DEV_CFG}
-
-# Function to delete IP address for PLD like systems
-function del_ip
+IFCFG="${IFCFG_DIR}/ifcfg-${VENET_DEV}"
+set -x
+function del_ip()
 {
-	local ip
-	local filetodel
-	local file
-	local aliasid
+	local ipm ids id
 
-	[ -d ${IFCFG_DIR} ] || return 0
-	cd ${IFCFG_DIR} || return 0
 	if [ "x${IPDELALL}" = "xyes" ]; then
-		ifdown ${VENET_DEV} >/dev/null 2>&1
-		rm -f ${VENET_DEV_CFG} ${VENET_DEV_CFG}:* 2>/dev/null
-		del_param ${IFCFG} IPV6ADDR_SECONDARIES ""
-		return 0;
+		ifdown ${VENET_DEV} 2>/dev/null
+		rm -f ${IFCFG} 2>/dev/null
+		return
 	fi
-	for ip in ${IP_ADDR}; do
-		# IPV6 processing
-		if [ "${ip#*:}" != "${ip}" ]; then
-			del_param ${IFCFG} IPV6ADDR_SECONDARIES "${ip}\\/128"
-			ifconfig ${VENET_DEV} del ${ip}/128
-			continue
-		fi
-		# find and delete a file with this alias
-		filetodel=`grep -l "IPADDR=${ip}$" \
-			${VENET_DEV_CFG}:* 2>/dev/null`
-		for file in ${filetodel}; do
-			rm -f "${file}"
-			aliasid=`echo ${file} | sed s/.*://g`
-			if [ -n "${aliasid}" ]; then
-				ifconfig ${VENET_DEV}:${aliasid} down >/dev/null 2>&1
-			fi
+	for ipm in ${IP_ADDR}; do
+		ip_conv $ipm
+		ids=`grep -E "^IPADDR.*=${_IP}$" ${IFCFG} 2>/dev/null |
+			sed 's/^IPADDR\(.*\)=.*/\1/'`
+		for id in ${ids}; do
+			sed -e "/^IPADDR${id}=/ d " < ${IFCFG} > ${IFCFG}.bak && mv -f ${IFCFG}.bak ${IFCFG}
+			#ifconfig ${VENET_DEV}:${id} down 2>/dev/null
+			ip addr del ${IP_ADDR} dev ${VENET_DEV} 2>/dev/null
 		done
 	done
 }
 
 del_ip
+
 exit 0
 # end of script
