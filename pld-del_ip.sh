@@ -21,7 +21,7 @@
 VENET_DEV=venet0
 IFCFG_DIR=/etc/sysconfig/interfaces/
 IFCFG="${IFCFG_DIR}/ifcfg-${VENET_DEV}"
-set -x
+
 function del_ip()
 {
 	local ipm ids id
