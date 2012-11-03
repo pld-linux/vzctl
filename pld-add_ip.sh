@@ -21,8 +21,22 @@
 VENET_DEV=venet0
 IFCFG_DIR=/etc/sysconfig/interfaces/
 IFCFG=${IFCFG_DIR}/ifcfg-${VENET_DEV}
-#ROUTES=${IFCFG_DIR}/ifroute-${VENET_DEV}
+NETFILE=/etc/sysconfig/network
 HOSTFILE=/etc/hosts
+
+function setup6_network
+{
+        [ "${IPV6}" != "yes" ] && return 0
+
+        if ! grep -q 'IPV6INIT="yes"' ${IFCFG}; then
+                put_param ${IFCFG} IPV6INIT yes
+        fi
+        if ! grep -q 'IPV6_NETWORKING=yes' ${NETFILE}; then
+                put_param ${NETFILE} IPV6_NETWORKING yes
+                put_param ${NETFILE} IPV6_GLOBALROUTEDEV ${VENET_DEV}
+                NETWORKRESTART=yes
+        fi
+}
 
 function get_aliases()
 {
@@ -44,10 +58,17 @@ NETMASK=255.255.255.255
 IPADDR=127.0.0.1" > ${IFCFG} ||
 	error "Can't write to file ${IFCFG}" ${VZ_FS_NO_DISK_SPACE}
 
+        put_param $NETFILE NETWORKING yes
+        put_param $NETFILE GATEWAY ${FAKEGATEWAY}
+
+        # setup ipv6
+        setup6_network
+
 	# Set up /etc/hosts
 	if [ ! -f ${HOSTFILE} ]; then
 		echo "127.0.0.1 localhost.localdomain localhost" > $HOSTFILE
 	fi
+
 }
 
 function create_config()
