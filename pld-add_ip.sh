@@ -17,7 +17,6 @@
 #
 #
 # Adds IP address(es) in a container running SuSE.
-set -x
 
 VENET_DEV=venet0
 IFCFG_DIR=/etc/sysconfig/interfaces/
@@ -49,6 +48,8 @@ IPADDR=127.0.0.1" > ${IFCFG} ||
 	if [ ! -f ${HOSTFILE} ]; then
 		echo "127.0.0.1 localhost.localdomain localhost" > $HOSTFILE
 	fi
+}
+
 function create_config()
 {
 	local ip=$1
