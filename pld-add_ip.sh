@@ -111,6 +111,9 @@ function add_ip()
 				found=1
 			fi
 		done
+		if echo ${_IP} | grep -q ':' ; then
+			setup6_network
+		fi
 		create_config ${_IP} ${ifnum}
 	done
 	if [ "x${VE_STATE}" = "xrunning" ]; then
