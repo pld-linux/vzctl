@@ -1,3 +1,7 @@
+#
+# Conditional build:
+%bcond_without	ploop		# build with ploop
+
 Summary:	OpenVZ containers control utility
 Summary(pl.UTF-8):	Narzędzie do zarządzania środowiskiem wirtualnym OpenVZ
 Name:		vzctl
@@ -21,8 +25,8 @@ BuildRequires:	libcgroup-devel >= 0.37
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 1:2.6.16
 BuildRequires:	pkgconfig
-BuildRequires: 	ploop-devel > 1.4
-Requires: 	ploop-libs > 1.4
+%{?with_ploop:BuildRequires: 	ploop-devel > 1.4}
+%{?with_ploop:Requires: 	ploop-libs > 1.4}
 Requires:	%{name}-lib = %{version}-%{release}
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
@@ -94,7 +98,8 @@ install -p %{SOURCE5} %{SOURCE6} etc/init.d
 %configure \
 	--disable-silent-rules \
 	--enable-bashcomp \
-	--enable-logrotate
+	--enable-logrotate \
+	%{!?with_ploop:--without-ploop} \
 
 %{__make}
 
