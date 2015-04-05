@@ -5,12 +5,12 @@
 Summary:	OpenVZ containers control utility
 Summary(pl.UTF-8):	Narzędzie do zarządzania środowiskiem wirtualnym OpenVZ
 Name:		vzctl
-Version:	4.1.1
+Version:	4.8
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://download.openvz.org/utils/vzctl/%{version}/src/%{name}-%{version}.tar.bz2
-# Source0-md5:	1b22d7213c1dbe02f897b7e0b529edc5
+# Source0-md5:	ad3e9f06ddd553885517952e820325bc
 Source1:	pld.conf
 Source2:	pld-add_ip.sh
 Source3:	pld-del_ip.sh
@@ -25,10 +25,10 @@ BuildRequires:	libcgroup-devel >= 0.37
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 1:2.6.16
 BuildRequires:	pkgconfig
-%{?with_ploop:BuildRequires: 	ploop-devel > 1.4}
-%{?with_ploop:Requires: 	ploop-libs > 1.4}
-Requires:	%{name}-lib = %{version}-%{release}
+%{?with_ploop:BuildRequires: 	ploop-devel >= 1.8}
 Requires(post,preun):	/sbin/chkconfig
+Requires:	%{name}-lib = %{version}-%{release}
+%{?with_ploop:Requires: 	ploop-libs >= 1.8}
 Requires:	rc-scripts
 # these reqs are for vz helper scripts
 Requires:	bash
@@ -120,7 +120,7 @@ ln -s ../vz/vz.conf $RPM_BUILD_ROOT/etc/sysconfig/vz
 :> $RPM_BUILD_ROOT/etc/cron.d/vz
 
 # this could go to vzctl-lib-devel, but since we don't have it...
-%{__rm} $RPM_BUILD_ROOT%{_libdir}/libvzctl.{la,so}
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/libvz{chown,ctl}.{la,so}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -189,6 +189,7 @@ fi
 
 %files lib
 %defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libvzchown-*.so
 %attr(755,root,root) %{_libdir}/libvzctl-*.so
 %attr(755,root,root) %{_libdir}/vzctl
 
