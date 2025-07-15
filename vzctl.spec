@@ -85,7 +85,7 @@ Pakiet ten dostarcza bashowe uzupełnianie linii poleceń dla vzctl.
 
 %prep
 %setup -q
-%patch0 -p1
+%patch -P0 -p1
 cp -p %{SOURCE1} etc/dists
 install -p %{SOURCE2} %{SOURCE3} %{SOURCE4} etc/dists/scripts
 install -p %{SOURCE5} %{SOURCE6} etc/init.d
